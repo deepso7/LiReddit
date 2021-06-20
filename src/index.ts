@@ -7,10 +7,10 @@ import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 
 import { __PROD__ } from "./constants";
-// import { Post } from "./entities/Post";
 import mikroConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/posts";
+import { UserResolver } from "./resolvers/user";
 
 (async () => {
   try {
@@ -20,7 +20,7 @@ import { PostResolver } from "./resolvers/posts";
     const app = express();
     const apolloServer = new ApolloServer({
       schema: await buildSchema({
-        resolvers: [HelloResolver, PostResolver],
+        resolvers: [HelloResolver, PostResolver, UserResolver],
         validate: false,
       }),
       context: () => ({ em: orm.em }),
