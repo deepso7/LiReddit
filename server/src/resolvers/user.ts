@@ -66,12 +66,12 @@ export class UserResolver {
         ],
       };
     }
-    if (options.password.length <= 6) {
+    if (options.password.length < 3) {
       return {
         errors: [
           {
             field: "password",
-            message: "Password must be greater than 6",
+            message: "Password must be greater than or equal to 3",
           },
         ],
       };
@@ -108,7 +108,7 @@ export class UserResolver {
   }
 
   @Mutation(() => UserResponse)
-  async loign(
+  async login(
     @Arg("options") options: UsernamePasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
