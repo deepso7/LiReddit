@@ -10,7 +10,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
 
-import { __PROD__ } from "./constants";
+import { COOKIE_NAME, __PROD__ } from "./constants";
 import mikroConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/posts";
@@ -35,7 +35,7 @@ import { MyContext } from "./types";
     );
     app.use(
       session({
-        name: "qid",
+        name: COOKIE_NAME,
         store: new RedisStore({ client: redisClient, disableTouch: true }), // disableTouch is true to create a infinitly long session
         cookie: {
           maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
