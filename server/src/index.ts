@@ -19,17 +19,17 @@ import { User } from "./entities/User";
 import { Post } from "./entities/Post";
 
 (async () => {
-  const conn = await createConnection({
-    type: "postgres",
-    database: "lireddit2",
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASS,
-    logging: true,
-    synchronize: true,
-    entities: [Post, User],
-  });
-
   try {
+    const conn = await createConnection({
+      type: "postgres",
+      database: "lireddit2",
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASS,
+      logging: true,
+      synchronize: true,
+      entities: [Post, User],
+    });
+
     const app = express();
 
     const RedisStore = connectRedis(session);
