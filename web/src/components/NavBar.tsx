@@ -4,6 +4,7 @@ import { Box, Button, Flex, Link } from "@chakra-ui/react";
 
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
+import { DarkModeSwitch } from "./DarkModeSwitch";
 
 interface NavBarProps {}
 
@@ -31,12 +32,12 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
     // User is logged in
   } else {
     body = (
-      <Flex>
-        <Box mr={2}>{data.me.username}</Box>
+      <Flex align="center">
+        <Box mr={4}>{data.me.username}</Box>
         <Button
           isLoading={logoutFetching}
           onClick={() => logout()}
-          variant="link"
+          colorScheme="red"
         >
           logout
         </Button>
@@ -47,6 +48,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
   return (
     <Flex position="sticky" top={0} zIndex={1} bg="tomato" p={4}>
       <Box ml="auto">{body}</Box>
+      <DarkModeSwitch />
     </Flex>
   );
 };
