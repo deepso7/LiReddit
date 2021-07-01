@@ -53,27 +53,51 @@ export class PostResolver {
     const realValue = isUpdoot ? 1 : -1;
     const { userId } = req.session;
 
-    // await Updoot.insert({
-    //   userId,
-    //   postId,
-    //   value: realValue,
-    // });
+    const updoot = await Updoot.findOne({ where: { postId, userId } });
 
-    await getConnection().query(
-      `
-      START TRANSACTION;
+    console.log("here", updoot);
 
-      insert into updoot ("userId", "postId", value)
-      values (${userId}, ${postId}, ${realValue});
+    // User has voted on the post before and are changing their vote
+    if (updoot && updoot.value !== realValue) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `
+          update updoot
+          set value = $1
+          where "postId" = $2 and "userId" = $3
+        `,
+          [realValue, postId, userId]
+        );
 
-
-      update post
-      set points = points + ${realValue}
-      where id = ${postId};
-
-      COMMIT;
-    `
-    );
+        await tm.query(
+          `
+        update post
+        set points = points + $1
+        where id = $2
+        `,
+          [2 * realValue, postId]
+        );
+      });
+    } else if (!updoot) {
+      // User never voted'
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `
+        insert into updoot ("userId", "postId", value)
+        values ($1, $2, $3)
+        `,
+          [userId, postId, realValue]
+        );
+        await tm.query(
+          `
+        update post
+        set points = points + $1
+        where id = $2
+        `,
+          [realValue, postId]
+        );
+      });
+    }
 
     return true;
   }
@@ -81,7 +105,8 @@ export class PostResolver {
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+    @Ctx() { req }: MyContext
   ): Promise<PaginatedPosts> {
     // 20 -> 21 To check if more posts exists or not we are fetching n + 1 posts
     const realLimit = Math.min(50, limit);
@@ -100,7 +125,12 @@ export class PostResolver {
         'email', u.email,
         'createdAt', u."createdAt",
         'updatedAt', u."updatedAt"
-        ) creator
+        ) creator,
+      ${
+        req.session.userId
+          ? `(select value from updoot where "userId" = ${req.session.userId} and "postId" = p.id) "voteStatus"`
+          : 'null as "voteStatus"'
+      }
       from post p
       inner join public.user u on u.id = p."creatorId"
       ${cursor ? 'where p."createdAt" < $2' : ""}
