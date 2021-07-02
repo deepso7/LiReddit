@@ -16,7 +16,7 @@ export class Updoot extends BaseEntity {
   userId: number;
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.updoots)
+  @ManyToOne(() => User, (user) => user.updoots, { onDelete: "CASCADE" }) // When a post is deleted updoots will also get deleted
   user: User;
 
   @Field()

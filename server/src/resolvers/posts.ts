@@ -190,8 +190,26 @@ export class PostResolver {
   }
 
   @Mutation(() => Boolean)
-  async deletePost(@Arg("id") id: number): Promise<Boolean> {
-    await Post.delete(id);
+  @UseMiddleware(isAuth)
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    console.log({ id });
+
+    const post = await Post.findOne(id);
+
+    console.log({ post });
+
+    if (!post) return false;
+    if (post.creatorId !== req.session.userId)
+      throw new Error("not authorized");
+
+    await Updoot.delete({ postId: id });
+    await Post.delete({ id });
+
+    // await Post.delete({ id, creatorId: req.session.userId }); // when onDelete is present on updoot entity we can do this also
+
     return true;
   }
 }
