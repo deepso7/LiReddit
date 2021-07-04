@@ -6,17 +6,16 @@ import {
   Button,
   Flex,
   Heading,
-  IconButton,
   Link,
   Stack,
   Text,
 } from "@chakra-ui/react";
 
 import Layout from "../components/Layout";
-import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
+import { useMeQuery, usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import UpdootSection from "../components/UpdootSection";
-import { DeleteIcon } from "@chakra-ui/icons";
+import EditDeletePostButtons from "../components/EditDeletePostButtons";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -26,7 +25,7 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables,
   });
-  const [, deletePost] = useDeletePostMutation();
+  const [{ data: meData }] = useMeQuery();
 
   if (!fetching && !data)
     return <div>No posts found, something went wrong</div>;
@@ -50,17 +49,12 @@ const Index = () => {
                   <Text>Posted by {p.creator.username}</Text>
                   <Flex>
                     <Text mt={4}>{p.textSnippet}</Text>
-                    <IconButton
-                      ml="auto"
-                      borderRadius="5px"
-                      bg="teal"
-                      colorScheme="red"
-                      aria-label="delete"
-                      icon={<DeleteIcon />}
-                      onClick={() => {
-                        deletePost({ id: p.id });
-                      }}
-                    />
+                    <Box ml="auto">
+                      <EditDeletePostButtons
+                        id={p.id}
+                        creatorId={p.creator.id}
+                      />
+                    </Box>
                   </Flex>
                 </Box>
               </Flex>
