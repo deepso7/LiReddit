@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import Layout from "../components/Layout";
-import { useMeQuery, usePostsQuery } from "../generated/graphql";
+import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import UpdootSection from "../components/UpdootSection";
 import EditDeletePostButtons from "../components/EditDeletePostButtons";
@@ -22,13 +22,17 @@ const Index = () => {
     limit: 15,
     cursor: null as null | string,
   });
-  const [{ data, fetching }] = usePostsQuery({
+  const [{ data, error, fetching }] = usePostsQuery({
     variables,
   });
-  const [{ data: meData }] = useMeQuery();
 
   if (!fetching && !data)
-    return <div>No posts found, something went wrong</div>;
+    return (
+      <div>
+        <div>No posts found, something went wrong</div>
+        <div>{error?.message}</div>
+      </div>
+    );
 
   return (
     <Layout>
