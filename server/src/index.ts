@@ -31,7 +31,7 @@ import { createUpdootLoader } from "./utils/createUpdootLoader";
       migrations: [path.join(__dirname, "./migrations/*")],
       entities: [Post, User, Updoot],
     });
-    await conn.runMigrations();
+    // await conn.runMigrations();
     // await Post.delete({});
 
     const app = express();
