@@ -1,6 +1,7 @@
 import React from "react";
 import NextLink from "next/link";
 import { Box, Button, Flex, Heading, Link } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
@@ -9,6 +10,7 @@ import { DarkModeSwitch } from "./DarkModeSwitch";
 interface NavBarProps {}
 
 const NavBar: React.FC<NavBarProps> = ({}) => {
+  const router = useRouter();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({
     pause: isServer(),
@@ -41,7 +43,10 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
         </NextLink>
         <Button
           isLoading={logoutFetching}
-          onClick={() => logout()}
+          onClick={async () => {
+            await logout();
+            router.reload();
+          }}
           colorScheme="red"
         >
           logout
