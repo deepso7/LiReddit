@@ -1,6 +1,5 @@
 import "reflect-metadata";
-import { config } from "dotenv";
-config();
+import "dotenv-safe/config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -26,25 +25,25 @@ import { createUpdootLoader } from "./utils/createUpdootLoader";
   try {
     const conn = await createConnection({
       type: "postgres",
-      database: "lireddit",
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASS,
+      url: process.env.DATABASE_URL,
       logging: true,
       synchronize: true,
       migrations: [path.join(__dirname, "./migrations/*")],
       entities: [Post, User, Updoot],
     });
-    // await conn.runMigrations();
+    await conn.runMigrations();
     // await Post.delete({});
 
     const app = express();
 
     const RedisStore = connectRedis(session);
-    const redis = new Redis();
+    const redis = new Redis(process.env.REDIS_URL);
+
+    app.set("trust proxy", 1); // For cookies
 
     app.use(
       cors({
-        origin: "http://localhost:3000",
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
       })
     );
@@ -57,9 +56,10 @@ import { createUpdootLoader } from "./utils/createUpdootLoader";
           httpOnly: true,
           sameSite: "lax", // CSRF
           secure: __PROD__, // If true cookie only work in https
+          domain: __PROD__ ? ".deepso.me" : undefined,
         },
         saveUninitialized: false,
-        secret: process.env.SESSION_SECRET || "",
+        secret: process.env.SESSION_SECRET,
         resave: false,
       })
     );
@@ -80,7 +80,7 @@ import { createUpdootLoader } from "./utils/createUpdootLoader";
 
     apolloServer.applyMiddleware({ app, cors: false });
 
-    app.listen(4000, () => {
+    app.listen(parseInt(process.env.PORT), () => {
       console.log("Server started on localhost:4000");
     });
   } catch (err) {
